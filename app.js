@@ -4,6 +4,7 @@
   function setupReveal() {
     var items = Array.prototype.slice.call(document.querySelectorAll(".reveal"));
     if (!items.length) return;
+    document.documentElement.classList.add("reveal-ready");
 
     if (reducedMotion || !("IntersectionObserver" in window)) {
       items.forEach(function (item) {
@@ -35,7 +36,7 @@
 
     var revenuePerMauMonth = 5.5;
     var costAllowance = 0.25;
-    var celebritySplit = 0.5;
+    var talentSplit = 0.5;
     var buttons = Array.prototype.slice.call(presetWrap.querySelectorAll("button"));
 
     function formatMoney(value) {
@@ -47,7 +48,7 @@
 
     function updateCalculator() {
       var players = Number(slider.value);
-      var annualShare = players * revenuePerMauMonth * 12 * (1 - costAllowance) * celebritySplit;
+      var annualShare = players * revenuePerMauMonth * 12 * (1 - costAllowance) * talentSplit;
 
       mauText.textContent = players.toLocaleString("en-US");
       shareText.textContent = "~" + formatMoney(annualShare);
@@ -69,6 +70,36 @@
     updateCalculator();
   }
 
+  function setupHeroVideo() {
+    var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    var videos = Array.prototype.slice.call(document.querySelectorAll(".hero-video"));
+    if (!videos.length || reduceMotion) return;
+
+    videos.forEach(function (video) {
+      var wrapper = video.closest(".hero-video-wrap");
+      var source = video.getAttribute("data-src");
+      if (!source) return;
+
+      video.addEventListener("canplay", function () {
+        if (wrapper) wrapper.classList.add("video-playing");
+      }, { once: true });
+
+      video.addEventListener("error", function () {
+        if (wrapper) wrapper.classList.remove("video-playing");
+      });
+
+      video.src = source;
+      video.load();
+      var playAttempt = video.play();
+      if (playAttempt && playAttempt.catch) {
+        playAttempt.catch(function () {
+          if (wrapper) wrapper.classList.remove("video-playing");
+        });
+      }
+    });
+  }
+
   setupReveal();
   setupCalculator();
+  setupHeroVideo();
 })();
